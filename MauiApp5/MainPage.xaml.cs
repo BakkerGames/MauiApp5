@@ -34,7 +34,7 @@ public partial class MainPage : ContentPage
         var item = new TeamMatch()
         {
             TeamNumber = 133,
-            MatchNumber = 1, // rand.Next(1, 999),
+            MatchNumber = rand.Next(1, 999),
             ScoutName = "Scott",
             AirtableId = $"row{rand.NextInt64()}",
         };
@@ -55,38 +55,55 @@ public partial class MainPage : ContentPage
         if (item == null)
             HelloLabel.Text = "Not found!";
         else
+        {
             HelloLabel.Text = item.Uuid;
+            WelcomeLabel.Text = item.ToString();
+        }
     }
 
     private async void GetTeamAllMatchesButton_Clicked(object sender, EventArgs e)
     {
-        var matches = await db.GetTeamAllMatches(133);
-        if (matches == null)
-            HelloLabel.Text = "No matches found";
-        else if (matches.Count == 1)
-            HelloLabel.Text = $"There is {matches.Count} match found.";
-        else
-            HelloLabel.Text = $"There are {matches.Count} matches found.";
-        StringBuilder matchNumberList = new();
-        foreach (TeamMatch item in matches)
+        try
         {
-            if (matchNumberList.Length > 0)
-                matchNumberList.Append(", ");
-            matchNumberList.Append(item.MatchNumber);
+            var matches = await db.GetTeamAllMatches(133);
+            if (matches == null)
+                HelloLabel.Text = "No matches found";
+            else if (matches.Count == 1)
+                HelloLabel.Text = $"There is {matches.Count} match found.";
+            else
+                HelloLabel.Text = $"There are {matches.Count} matches found.";
+            StringBuilder matchNumberList = new();
+            foreach (TeamMatch item in matches)
+            {
+                if (matchNumberList.Length > 0)
+                    matchNumberList.Append(", ");
+                matchNumberList.Append(item.MatchNumber);
+            }
+            WelcomeLabel.Text = matchNumberList.ToString();
         }
-        WelcomeLabel.Text = matchNumberList.ToString();
+        catch (Exception ex)
+        {
+            HelloLabel.Text = $"Error getting all matches:\r\n{ex.Message}";
+        }
     }
 
     private async void UpdateTeamMatchButton_Clicked(object sender, EventArgs e)
     {
-        var item = await db.GetTeamMatchAsync(133, 1);
-        if (item == null)
-            HelloLabel.Text = "Not found!";
-        else
+        try
         {
-            item.ScoutName = $"Fred-{rand.Next()}";
-            var rows = await db.SaveItemAsync(item);
-            HelloLabel.Text = $"Updated {rows} rows!";
+            var item = await db.GetTeamMatchAsync(133, 1);
+            if (item == null)
+                HelloLabel.Text = "Not found!";
+            else
+            {
+                item.ScoutName = $"Fred-{rand.Next()}";
+                var rows = await db.SaveItemAsync(item);
+                HelloLabel.Text = $"Updated {rows} rows!";
+            }
+        }
+        catch (Exception ex)
+        {
+            HelloLabel.Text = $"Error updating item:\r\n{ex.Message}";
         }
     }
 }
